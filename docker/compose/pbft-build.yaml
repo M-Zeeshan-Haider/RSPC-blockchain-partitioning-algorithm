@@ -1,0 +1,16 @@
+
+version: '3.6'
+
+services:
+
+  pbft:
+    build:
+      context: ../../
+      dockerfile: ./Dockerfile
+      args:
+        - http_proxy
+        - https_proxy
+        - no_proxy
+    image: sawtooth-pbft-local:${ISOLATION_ID}
+    volumes:
+      - ../../:/project/sawtooth-pbft

@@ -1,0 +1,37 @@
+
+version: "3.6"
+
+volumes:
+  pbft_shared_data:
+    name: pbft_shared_data_${ISOLATION_ID}
+
+networks:
+  validators:
+    name: pbft_validators_${ISOLATION_ID}
+  rest_apis:
+    name: pbft_rest_apis_${ISOLATION_ID}
+
+services:
+  admin:
+    labels:
+      - "com.sawtooth.isolation_id=${ISOLATION_ID:-}"
+    build:
+      context: .
+      dockerfile: admin.Dockerfile
+    networks:
+      validators:
+      rest_apis:
+    volumes:
+      - pbft_shared_data:/shared_data
+    command: |
+      bash -c "
+        rm -rf /shared_data/* &&
+        ls /shared_data &&
+        mkdir -p /shared_data/validators &&
+        mkdir -p /shared_data/rest_apis &&
+        mkdir -p /shared_data/keys &&
+        sawtooth keygen --key-dir /shared_data/keys workload &&
+        sawtooth keygen --key-dir /shared_data/keys settings &&
+        tail -f /dev/null
+      "
+    stop_signal: SIGKILL

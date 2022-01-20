@@ -1,0 +1,15 @@
+
+version: '3.6'
+
+services:
+
+  pbft-engine:
+    build:
+      context: .
+      dockerfile: Dockerfile-installed-${DISTRO}
+      args:
+        - http_proxy
+        - https_proxy
+        - no_proxy
+    image: sawtooth-pbft-engine:${ISOLATION_ID}
+    container_name: sawtooth-pbft

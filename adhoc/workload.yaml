@@ -1,0 +1,38 @@
+
+version: "3.6"
+
+# Validators across all compose files join this docker network for inter-node
+# communication
+networks:
+  rest_apis:
+    external:
+      name: pbft_rest_apis_${ISOLATION_ID}
+
+volumes:
+  pbft_shared_data:
+    external: true
+    name: pbft_shared_data_${ISOLATION_ID}
+
+services:
+
+  workload:
+    image: sawtooth-intkey-workload:${ISOLATION_ID}
+    labels:
+      - "com.sawtooth.isolation_id=${ISOLATION_ID:-}"
+    command: "bash -c \"\
+      export TARGETS=$$(\
+        for target in $$(ls /shared_data/rest_apis -1); do \
+          echo \\\"http://$$target:8008\\\"; \
+        done | tr \\\"\n\\\" \\\",\\\" | sed s\\/,$$\\/\\\n\\/); \
+      echo \\\"-- TARGETS \\\" && echo \\\"TARGETS=$$TARGETS\\\"; \
+      intkey-workload \
+        --key-file /shared_data/keys/workload.priv \
+        --rate ${RATE:-1} \
+        --urls $$TARGETS \
+    \""
+    volumes:
+      - pbft_shared_data:/shared_data
+    networks:
+      default:
+      rest_apis:
+    stop_signal: SIGKILL
